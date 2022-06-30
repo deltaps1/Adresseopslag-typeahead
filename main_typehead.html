@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <title>Adresseopslag - proof of concept</title>
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <style>
+            #overskrift {
+                text-align: center;
+            }
+            #div-container {
+                width: 50%;
+                height: 50px;
+                margin-top: 25px;
+                margin-left: 25%;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+            }
+            .typeahead {
+                width: 500px;
+                justify-content: center;
+                align-items: center;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+            }
+
+        </style>
+    </head>
+    <body>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/corejs-typeahead/1.2.1/bloodhound.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/corejs-typeahead/1.2.1/typeahead.jquery.min.js"></script>
+        
+        <h1 id="overskrift">Adresseforslag - Proof of Concept</h1>
+        <div id="div-container">
+            <input class="typeahead" width="100px" type="text" placeholder="Indtast en adresse">
+        </div>
+
+        <script>
+            var find_adress = function(strs) {
+                return function get_request(search_word, cb) {
+                    var request = new XMLHttpRequest()
+            
+                    // Open a new connection, using the GET request on the URL endpoint
+                    search_string = "https://api.dataforsyningen.dk/autocomplete?q="
+                    search_string += search_word
+                    search_string += "&caretpos=18&fuzzy="
+                    request.open('GET', search_string, true)
+            
+                    request.onload = function () {
+                        // Begin accessing JSON data here
+                        var data = JSON.parse(this.response)
+                        console.log("DATA LENGHT: ", Object.keys(data).length)
+                        var terms = []
+                        if (Object.keys(data).length < 10) {
+                            stop_int =Object.keys(data).length
+                        } else {
+                            stop_int = 10
+                        }
+                        console.log("STOP_INT: ", stop_int)
+                    
+                        for (i=0; i<stop_int; i++) {
+                            to_append = data[i]["forslagstekst"]
+                            console.log("APPEND: ", to_append)
+                            terms.push(to_append)
+                        }
+                        console.log(terms)
+                        var terms = terms
+                        cb(terms)
+                    }
+
+                    // Send request
+                    request.send()
+                    cb(terms)
+                };
+            };
+
+
+            $('#div-container .typeahead').typeahead(
+                {
+                    hint: false,
+                    highlight: false,
+                    minLength: 1,
+                },
+                {
+                    name: 'terms',
+                    source: find_adress(),
+                    limit: 10
+                }
+            );
+        </script>
+    </body>
+</html>
